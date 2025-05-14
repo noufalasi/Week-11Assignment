@@ -1,0 +1,39 @@
+- name: Deploy MERN Backend
+  hosts: mern
+  become: true
+
+  tasks:
+    - name: Install dependencies
+      apt:
+        name: ['git', 'curl', 'nodejs', 'npm']
+        state: present
+        update_cache: true
+
+    - name: Clone backend repository
+      git:
+        repo: https://github.com/cw-barry/blog-app-MERN.git
+        dest: /home/ubuntu/blog-app
+        update: yes
+
+    - name: Copy .env file
+      copy:
+        src: .env
+        dest: /home/ubuntu/blog-app/backend/.env
+        owner: ubuntu
+        group: ubuntu
+        mode: 0644
+
+    - name: Install backend dependencies
+      shell: npm install
+      args:
+        chdir: /home/ubuntu/blog-app/backend
+
+    - name: Install PM2 globally
+      shell: npm install -g pm2
+
+    - name: Start backend with PM2
+      shell: |
+        pm2 start index.js --name blog-backend
+        pm2 save
+      args:
+        chdir: /home/ubuntu/blog-app/backend
